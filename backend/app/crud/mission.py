@@ -1,15 +1,16 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import List, Optional
 
 from app.models import Mission, Target
 from app.schemas import MissionCreate, TargetUpdate
 
 
-def create_mission(db: Session, mission_data: MissionCreate) -> Mission:
+async def create_mission(db: AsyncSession, mission_data: MissionCreate) -> Mission:
     """Create a new mission with targets."""
     mission = Mission(is_completed=False)
     db.add(mission)
-    db.flush()  # Get mission ID before creating targets
+    await db.flush()  
     
     for target_data in mission_data.targets:
         target = Target(
@@ -21,42 +22,43 @@ def create_mission(db: Session, mission_data: MissionCreate) -> Mission:
         )
         db.add(target)
     
-    db.commit()
-    db.refresh(mission)
+    await db.commit()
+    await db.refresh(mission)
     return mission
 
 
-def get_mission(db: Session, mission_id: int) -> Optional[Mission]:
-    """Get a mission by ID with targets."""
-    return db.query(Mission).filter(Mission.id == mission_id).first()
+async def get_mission(db: AsyncSession, mission_id: int) -> Optional[Mission]:
+    result = await db.execute(select(Mission).filter(Mission.id == mission_id))
+    return result.scalars().first()
 
 
-def get_missions(db: Session, skip: int = 0, limit: int = 100) -> List[Mission]:
+async def get_missions(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Mission]:
     """Get all missions with pagination."""
-    return db.query(Mission).offset(skip).limit(limit).all()
+    result = await db.execute(select(Mission).offset(skip).limit(limit))
+    return list(result.scalars().all())
 
 
-def delete_mission(db: Session, mission: Mission) -> None:
+async def delete_mission(db: AsyncSession, mission: Mission) -> None:
     """Delete a mission (targets cascade)."""
-    db.delete(mission)
-    db.commit()
+    await db.delete(mission)
+    await db.commit()
 
 
-def assign_cat_to_mission(db: Session, mission: Mission, cat_id: int) -> Mission:
+async def assign_cat_to_mission(db: AsyncSession, mission: Mission, cat_id: int) -> Mission:
     """Assign a cat to a mission."""
     mission.cat_id = cat_id
-    db.commit()
-    db.refresh(mission)
+    await db.commit()
+    await db.refresh(mission)
     return mission
 
 
-def update_target(db: Session, target: Target, update_data: TargetUpdate) -> Target:
+async def update_target(db: AsyncSession, target: Target, update_data: TargetUpdate) -> Target:
     """Update target notes and/or completion status."""
     if update_data.notes is not None:
         target.notes = update_data.notes
     if update_data.is_completed is not None:
         target.is_completed = update_data.is_completed
     
-    db.commit()
-    db.refresh(target)
+    await db.commit()
+    await db.refresh(target)
     return target

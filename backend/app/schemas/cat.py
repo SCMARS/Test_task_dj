@@ -19,5 +19,4 @@ class CatUpdate(BaseModel):
 class CatResponse(CatBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}

@@ -22,5 +22,4 @@ class TargetResponse(TargetBase):
     notes: str
     is_completed: bool
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}

@@ -1,4 +1,6 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from fastapi import HTTPException, status
 
 from app.models import Mission, Target, Cat
@@ -9,9 +11,11 @@ class MissionService:
     """Business logic for mission operations."""
     
     @staticmethod
-    def validate_can_assign_cat(db: Session, mission_id: int, cat_id: int) -> tuple[Mission, Cat]:
+    async def validate_can_assign_cat(db: AsyncSession, mission_id: int, cat_id: int) -> tuple[Mission, Cat]:
         """Validate that a cat can be assigned to a mission."""
-        mission = db.query(Mission).filter(Mission.id == mission_id).first()
+        result = await db.execute(select(Mission).filter(Mission.id == mission_id))
+        mission = result.scalars().first()
+        
         if not mission:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -30,7 +34,9 @@ class MissionService:
                 detail="Mission already has a cat assigned"
             )
         
-        cat = db.query(Cat).filter(Cat.id == cat_id).first()
+        result_cat = await db.execute(select(Cat).filter(Cat.id == cat_id))
+        cat = result_cat.scalars().first()
+        
         if not cat:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -38,7 +44,9 @@ class MissionService:
             )
         
         # Check if cat already has a mission
-        existing_mission = db.query(Mission).filter(Mission.cat_id == cat_id).first()
+        result_existing = await db.execute(select(Mission).filter(Mission.cat_id == cat_id))
+        existing_mission = result_existing.scalars().first()
+        
         if existing_mission:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -48,9 +56,11 @@ class MissionService:
         return mission, cat
     
     @staticmethod
-    def validate_can_delete_mission(db: Session, mission_id: int) -> Mission:
+    async def validate_can_delete_mission(db: AsyncSession, mission_id: int) -> Mission:
         """Validate that a mission can be deleted."""
-        mission = db.query(Mission).filter(Mission.id == mission_id).first()
+        result = await db.execute(select(Mission).filter(Mission.id == mission_id))
+        mission = result.scalars().first()
+        
         if not mission:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -66,24 +76,29 @@ class MissionService:
         return mission
     
     @staticmethod
-    def validate_can_update_target(
-        db: Session, 
+    async def validate_can_update_target(
+        db: AsyncSession, 
         mission_id: int, 
         target_id: int, 
         update_data: TargetUpdate
     ) -> Target:
-        """Validate that target notes/completion can be updated."""
-        mission = db.query(Mission).filter(Mission.id == mission_id).first()
+        result = await db.execute(select(Mission).filter(Mission.id == mission_id))
+        mission = result.scalars().first()
+        
         if not mission:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Mission with id {mission_id} not found"
             )
         
-        target = db.query(Target).filter(
-            Target.id == target_id, 
-            Target.mission_id == mission_id
-        ).first()
+        result_target = await db.execute(
+            select(Target).filter(
+                Target.id == target_id, 
+                Target.mission_id == mission_id
+            )
+        )
+        target = result_target.scalars().first()
+        
         if not target:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -106,13 +121,20 @@ class MissionService:
         return target
     
     @staticmethod
-    def check_mission_completion(db: Session, mission: Mission) -> bool:
-        """Check if all targets are completed and auto-complete mission if so."""
-        all_completed = all(target.is_completed for target in mission.targets)
+    async def check_mission_completion(db: AsyncSession, mission: Mission) -> bool:
         
-        if all_completed and not mission.is_completed:
-            mission.is_completed = True
-            db.commit()
+        result = await db.execute(
+            select(Mission)
+            .options(selectinload(Mission.targets))
+            .filter(Mission.id == mission.id)
+        )
+        loaded_mission = result.scalars().first()
+        
+        all_completed = all(target.is_completed for target in loaded_mission.targets)
+        
+        if all_completed and not loaded_mission.is_completed:
+            loaded_mission.is_completed = True
+            await db.commit()
             return True
         
         return False

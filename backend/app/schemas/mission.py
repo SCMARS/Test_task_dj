@@ -23,5 +23,4 @@ class MissionResponse(BaseModel):
     targets: List[TargetResponse]
     cat: Optional[CatResponse] = None
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}

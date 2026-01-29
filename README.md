@@ -61,6 +61,22 @@ echo "CAT_API_URL=https://api.thecatapi.com/v1/breeds" > .env
 uvicorn app.main:app --reload
 ```
 
+## Running Tests
+
+The project includes a `pytest` suite for the backend.
+
+```bash
+cd backend
+pytest
+```
+
+## Architecture
+
+- **Async Core**: Built with `FastAPI` (Async), `SQLAlchemy` (AsyncSession), and `aiosqlite`.
+- **Validation**: `Pydantic` v2 with strict typing.
+- **Config**: `pydantic-settings` for `.env` management.
+- **Logging**: Structured logging with Request Middleware.
+
 ### Frontend
 ```bash
 cd frontend

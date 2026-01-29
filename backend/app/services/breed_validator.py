@@ -1,41 +1,40 @@
 import os
-import requests
-from functools import lru_cache
+import httpx
 from typing import Set
-
+from app.core.config import settings
 
 class BreedValidator:
     """Validates cat breeds against TheCatAPI with caching."""
     
-    CAT_API_URL = os.getenv("CAT_API_URL", "https://api.thecatapi.com/v1/breeds")
     _breeds_cache: Set[str] | None = None
     
     @classmethod
-    def get_valid_breeds(cls) -> Set[str]:
-        """Fetch and cache valid breed names from TheCatAPI."""
+    async def get_valid_breeds(cls) -> Set[str]:
         if cls._breeds_cache is not None:
             return cls._breeds_cache
         
         try:
-            response = requests.get(cls.CAT_API_URL, timeout=10)
-            response.raise_for_status()
-            breeds_data = response.json()
-            cls._breeds_cache = {breed["name"] for breed in breeds_data}
-            return cls._breeds_cache
-        except requests.RequestException as e:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(settings.cat_api_url, timeout=10)
+                response.raise_for_status()
+                breeds_data = response.json()
+                cls._breeds_cache = {breed["name"] for breed in breeds_data}
+                return cls._breeds_cache
+        except httpx.HTTPError as e:
             raise RuntimeError(f"Failed to fetch breeds from TheCatAPI: {e}")
     
     @classmethod
-    def is_valid_breed(cls, breed_name: str) -> bool:
+    async def is_valid_breed(cls, breed_name: str) -> bool:
         """Check if breed name exists in TheCatAPI."""
-        valid_breeds = cls.get_valid_breeds()
+        valid_breeds = await cls.get_valid_breeds()
         return breed_name in valid_breeds
     
     @classmethod
-    def validate_breed(cls, breed_name: str) -> None:
+    async def validate_breed(cls, breed_name: str) -> None:
         """Validate breed and raise ValueError if invalid."""
-        if not cls.is_valid_breed(breed_name):
-            valid_breeds = cls.get_valid_breeds()
+        if not await cls.is_valid_breed(breed_name):
+            # We don't fetch all breeds again for the error message to avoid spamming 
+            # if cache was just populated.
             raise ValueError(
                 f"Invalid breed: '{breed_name}'. "
                 f"Must be one of the valid breeds from TheCatAPI."
