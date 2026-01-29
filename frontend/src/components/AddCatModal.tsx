@@ -78,6 +78,8 @@ export function AddCatModal({ isOpen, onClose, onSuccess }: AddCatModalProps) {
                                 <input
                                     name="name"
                                     required
+                                    onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Please fill out this field')}
+                                    onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-gray-600"
                                     placeholder="e.g. Agent Whiskers"
                                 />
@@ -88,6 +90,8 @@ export function AddCatModal({ isOpen, onClose, onSuccess }: AddCatModalProps) {
                                 <input
                                     name="breed"
                                     required
+                                    onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Please enter a valid breed')}
+                                    onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-gray-600"
                                     placeholder="e.g. Siamese (Must follow TheCatAPI)"
                                 />
@@ -101,6 +105,8 @@ export function AddCatModal({ isOpen, onClose, onSuccess }: AddCatModalProps) {
                                         type="number"
                                         min="0"
                                         required
+                                        onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Please enter years of experience')}
+                                        onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                                         className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                                     />
                                 </div>
@@ -111,6 +117,8 @@ export function AddCatModal({ isOpen, onClose, onSuccess }: AddCatModalProps) {
                                         type="number"
                                         min="0"
                                         required
+                                        onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Please enter a salary')}
+                                        onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                                         className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                                     />
                                 </div>
