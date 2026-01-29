@@ -2,11 +2,15 @@
 
 A full-stack application for managing spy cats, their missions, and targets.
 
-## Tech Stack
+## Repositories
 
-- **Backend**: FastAPI, SQLAlchemy, SQLite, Pydantic (Python 3.11+)
-- **Frontend**: Next.js 15, Tailwind CSS, Framer Motion (Node 20+)
-- **Infrastructure**: Docker & Docker Compose
+- **Backend**: `backend/`
+- **Frontend**: `frontend/`
+
+## API Documentation
+
+A complete Postman collection is available here: [postman_collection.json](./postman_collection.json).
+You can import this file directly into Postman to test all endpoints.
 
 ## Quick Start (Recommended)
 
@@ -39,7 +43,7 @@ docker-compose up --build
 - **Cats Management**: CRUD operations with validations
 - **Mission Control**: Assign missions, update targets, freeze notes on completion
 - **Business Logic**:
-  - Validates breeds against TheCatAPI
+  - Validates breeds against [TheCatAPI](https://api.thecatapi.com/v1/breeds)
   - Prevents deleting missions assigned to cats
   - Auto-completes missions when all targets are done
   - Prevents editing notes on completed missions
@@ -52,6 +56,8 @@ cd backend
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+# Create .env file (optional, defaults provided in code)
+echo "CAT_API_URL=https://api.thecatapi.com/v1/breeds" > .env
 uvicorn app.main:app --reload
 ```
 

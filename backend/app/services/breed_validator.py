@@ -1,3 +1,4 @@
+import os
 import requests
 from functools import lru_cache
 from typing import Set
@@ -6,7 +7,7 @@ from typing import Set
 class BreedValidator:
     """Validates cat breeds against TheCatAPI with caching."""
     
-    CAT_API_URL = "https://api.thecatapi.com/v1/breeds"
+    CAT_API_URL = os.getenv("CAT_API_URL", "https://api.thecatapi.com/v1/breeds")
     _breeds_cache: Set[str] | None = None
     
     @classmethod

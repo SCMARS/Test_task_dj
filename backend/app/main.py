@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.api import cats_router, missions_router
 
-
+# Create all tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -22,6 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers
 app.include_router(cats_router)
 app.include_router(missions_router)
 

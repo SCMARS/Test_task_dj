@@ -60,7 +60,7 @@ def update_target_endpoint(
     target = MissionService.validate_can_update_target(db, mission_id, target_id, update_data)
     updated_target = update_target(db, target, update_data)
     
-
+    # Check for mission auto-completion
     mission = get_mission(db, mission_id)
     MissionService.check_mission_completion(db, mission)
     

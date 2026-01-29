@@ -72,6 +72,7 @@ class MissionService:
         target_id: int, 
         update_data: TargetUpdate
     ) -> Target:
+        """Validate that target notes/completion can be updated."""
         mission = db.query(Mission).filter(Mission.id == mission_id).first()
         if not mission:
             raise HTTPException(
@@ -89,6 +90,7 @@ class MissionService:
                 detail=f"Target with id {target_id} not found in mission {mission_id}"
             )
         
+        # Check if notes can be updated
         if update_data.notes is not None:
             if target.is_completed:
                 raise HTTPException(
@@ -105,6 +107,7 @@ class MissionService:
     
     @staticmethod
     def check_mission_completion(db: Session, mission: Mission) -> bool:
+        """Check if all targets are completed and auto-complete mission if so."""
         all_completed = all(target.is_completed for target in mission.targets)
         
         if all_completed and not mission.is_completed:
